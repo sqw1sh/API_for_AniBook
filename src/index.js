@@ -1,6 +1,8 @@
 const express = require("express");
 const v1RouterUser = require("./v1/routes/user.routes");
-const db = require("./database/connection");
+const runDb = require("./database/connection");
+
+runDb().catch(console.error);
 
 const app = express();
 const PORT = process.env.PORT || 3000;

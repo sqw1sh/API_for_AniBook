@@ -1,14 +1,22 @@
-const mongo = require("mongodb").MongoClient;
+const MongoClient = require("mongodb").MongoClient;
+const url = "mongodb://localhost:27017";
 
-const db = mongo.connect("mongodb://localhost:27017", (err, client) => {
-	if (err) {
-		console.log("Connection error: ", err);
-		throw err;
+const mongoClient = new MongoClient(url);
+
+async function run() {
+	try {
+		await mongoClient.connect();
+		const db = mongoClient.db("AniBook");
+		const result = await db.command({ ping: 1 });
+
+		console.log("Connected to MongoDB");
+		console.log(result);
+	} catch (err) {
+		console.log("Error: " + err);
+	} finally {
+		await mongoClient.close();
+		console.log("Close connect");
 	}
+}
 
-	console.log("Connected to MongoDB");
-
-	client.close();
-});
-
-module.exports = db;
+module.exports = run;
