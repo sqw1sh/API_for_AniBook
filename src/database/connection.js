@@ -1,22 +1,8 @@
-const MongoClient = require("mongodb").MongoClient;
-const url = "mongodb://localhost:27017";
-
-const mongoClient = new MongoClient(url);
+const mongoose = require("mongoose");
+const { MONGODB_URI } = require("../config");
 
 async function run() {
-	try {
-		await mongoClient.connect();
-		const db = mongoClient.db("AniBook");
-		const result = await db.command({ ping: 1 });
-
-		console.log("Connected to MongoDB");
-		console.log(result);
-	} catch (err) {
-		console.log("Error: " + err);
-	} finally {
-		await mongoClient.close();
-		console.log("Close connect");
-	}
+	await mongoose.connect(MONGODB_URI);
 }
 
 module.exports = run;
