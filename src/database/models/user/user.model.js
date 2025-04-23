@@ -1,6 +1,5 @@
 const { Schema, default: mongoose } = require("mongoose");
 const bcrypt = require("bcrypt");
-const saltRounds = 10;
 
 const userSchema = new Schema(
 	{
@@ -10,7 +9,7 @@ const userSchema = new Schema(
 			maxLength: 20,
 		},
 		email: String,
-		password: String,
+		passwordHash: String,
 		refreshToken: String,
 	},
 	{
@@ -23,14 +22,9 @@ userSchema.methods.setPassword = function (password) {
 		return false;
 	}
 
-	bcrypt.hash(password, saltRounds, (err, hash) => {
-		if (err) {
-			console.log(err);
-			return;
-		}
-
-		this.password = hash;
-	});
+	const salt = bcrypt.genSaltSync(10);
+	const hash = bcrypt.hashSync(password, salt);
+	this.passwordHash = hash;
 };
 
 userSchema.methods.checkPassword = function (password) {
@@ -40,18 +34,16 @@ userSchema.methods.checkPassword = function (password) {
 		return false;
 	}
 
-	if (!this.password) {
+	if (!this.passwordHash) {
 		return false;
 	}
 
-	bcrypt.compare(password, this.password, (err, res) => {
+	bcrypt.compare(password, this.passwordHash, (err, res) => {
 		if (err) {
 			return;
 		}
 
-		if (res) {
-			result = res;
-		}
+		result = res;
 	});
 
 	return result;
