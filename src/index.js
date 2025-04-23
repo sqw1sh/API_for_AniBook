@@ -1,11 +1,16 @@
 const express = require("express");
 const v1RouterUser = require("./v1/routes/user.routes");
-const runDB = require("./database/connection");
+const bodyParser = require("body-parser");
+// const multer = require("multer");
+const dbStart = require("./database/connection");
 
-runDB().catch((err) => console.log(err));
+dbStart().catch((err) => console.log(err));
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use("/api/v1/user", v1RouterUser);
 

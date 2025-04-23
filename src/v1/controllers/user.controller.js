@@ -1,9 +1,28 @@
-const getAllUser = (req, res) => {
-	res.send("get all users");
+const userService = require("../services/user.service");
+
+const getAllUser = async (req, res) => {
+	let offset = 0;
+
+	if (req.query.page && !isNaN(parseInt(req.query.page))) {
+		const page = parseInt(req.query.page);
+
+		if (page > 0) {
+			offset = page === 1 ? 0 : (page - 1) * 10;
+		}
+	}
+
+	let resObj = await userService.getAllUser(offset);
+	return res.json(resObj);
 };
 
-const getOneUser = (req, res) => {
-	res.send("get one user");
+const getOneUser = async (req, res) => {
+	let resObj;
+
+	if (req.params.id) {
+		resObj = await userService.getOneUser(req.params.id);
+	}
+
+	return res.json(resObj);
 };
 
 const getOneUserProfile = (req, res) => {
@@ -18,8 +37,9 @@ const getOneUserList = (req, res) => {
 	res.send("get one user list");
 };
 
-const createUser = (req, res) => {
-	res.send("Create new user");
+const createUser = async (req, res) => {
+	const resObj = await userService.createUser(req.body);
+	return res.json(resObj);
 };
 
 const updateUser = (req, res) => {
