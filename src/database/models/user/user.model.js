@@ -3,14 +3,58 @@ const bcrypt = require("bcrypt");
 
 const userSchema = new Schema(
 	{
-		login: {
+		username: {
 			type: String,
-			minLength: 3,
-			maxLength: 20,
+			required: true,
 		},
-		email: String,
-		passwordHash: String,
-		refreshToken: String,
+		email: {
+			type: String,
+			required: true,
+		},
+		passwordHash: {
+			type: String,
+			required: true,
+		},
+		image: {
+			type: String,
+			default: "images/avatar/default.png",
+		},
+		about: {
+			type: String,
+			default: "",
+		},
+		socials: {
+			vkId: {
+				type: String,
+				default: "",
+			},
+			tgId: {
+				type: String,
+				default: "",
+			},
+			shikiId: {
+				type: String,
+				default: "",
+			},
+		},
+		notify: {
+			notifyUpdate: {
+				type: Boolean,
+				default: true,
+			},
+			notifySubscribe: {
+				type: Boolean,
+				default: true,
+			},
+			notifyComment: {
+				type: Boolean,
+				default: true,
+			},
+		},
+		refreshToken: {
+			type: String,
+			required: true,
+		},
 	},
 	{
 		timestamps: true,

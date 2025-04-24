@@ -1,77 +1,51 @@
 const userService = require("../services/user.service");
 
-const getAllUser = async (req, res) => {
-	let offset = 0;
+/* GET */
+const getAllUsers = async (req, res) => {
+	let page = 1;
 
 	if (req.query.page && !isNaN(parseInt(req.query.page))) {
-		const page = parseInt(req.query.page);
+		const queryPage = parseInt(req.query.page);
 
-		if (page > 0) {
-			offset = page === 1 ? 0 : (page - 1) * 10;
+		if (queryPage > 1) {
+			page = queryPage;
 		}
 	}
 
-	let resObj = await userService.getAllUser(offset);
+	const resObj = await userService.getAllUsers(page);
 	return res.json(resObj);
 };
 
 const getOneUser = async (req, res) => {
-	let resObj;
+	let id = "";
 
-	if (req.params.id) {
-		resObj = await userService.getOneUser(req.params.id);
+	if (req.params.id && req.params.id.length > 0) {
+		id = req.params.id;
 	}
 
+	const resObj = await userService.getOneUser(id);
 	return res.json(resObj);
 };
 
-const getOneUserProfile = (req, res) => {
-	res.send("get one user profile");
-};
+const getUserProfile = async (req, res) => {
+	let id = "";
 
-const getOneUserNotify = (req, res) => {
-	res.send("get one user notify");
-};
+	if (req.params.id && req.params.id.length > 0) {
+		id = req.params.id;
+	}
 
-const getOneUserList = (req, res) => {
-	res.send("get one user list");
-};
+	const token = req.get("Authorization");
 
-const createUser = async (req, res) => {
-	const resObj = await userService.createUser(req.body);
+	if (!token) {
+		return res.sendStatus(401);
+	}
+
+	const resObj = await userService.getUserProfile(token, id);
 	return res.json(resObj);
-};
-
-const updateUser = (req, res) => {
-	res.send("Update one user");
-};
-
-const updateUserProfile = (req, res) => {
-	res.send("Update one user profile");
-};
-
-const updateUserNotify = (req, res) => {
-	res.send("Update one user notify");
-};
-
-const updateUserList = (req, res) => {
-	res.send("Update one user list");
-};
-
-const removeUser = (req, res) => {
-	res.send("Remove one user");
 };
 
 module.exports = {
-	getAllUser,
+	getAllUsers,
 	getOneUser,
-	getOneUserProfile,
-	getOneUserNotify,
-	getOneUserList,
-	createUser,
-	updateUser,
-	updateUserProfile,
-	updateUserNotify,
-	updateUserList,
-	removeUser,
+	getUserProfile,
 };
