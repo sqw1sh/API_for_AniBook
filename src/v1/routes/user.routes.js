@@ -8,9 +8,7 @@ router.get("/:id", userConroller.getOneUser);
 router.get("/profile/:id", userConroller.getUserProfile);
 
 /* UPDATE */
-// router.patch("/:id", userConroller.updateUser);
-// router.patch("/profile/:id", userConroller.updateUserProfile);
-// router.patch("/notify/:id", userConroller.updateUserNotify);
-// router.patch("/list/:id", userConroller.updateUserList);
+router.patch("/profile/:id", userConroller.updateUserProfile);
+router.patch("/profile/password/:id", userConroller.updateUserPassword);
 
 module.exports = router;

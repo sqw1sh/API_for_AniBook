@@ -82,15 +82,7 @@ userSchema.methods.checkPassword = function (password) {
 		return false;
 	}
 
-	bcrypt.compare(password, this.passwordHash, (err, res) => {
-		if (err) {
-			return;
-		}
-
-		result = res;
-	});
-
-	return result;
+	return bcrypt.compareSync(password, this.passwordHash);
 };
 
 const UserModel = mongoose.model("User", userSchema);
