@@ -27,62 +27,32 @@ const getOneUser = async (req, res) => {
 	return res.json(resObj);
 };
 
-const getUserProfile = async (req, res) => {
-	let id = "";
-
-	if (req.params.id && req.params.id.length > 0) {
-		id = req.params.id;
-	}
-
-	const token = req.get("Authorization");
-
-	if (!token) {
-		return res.sendStatus(401);
-	}
-
-	const resObj = await userService.getUserProfile(token, id);
-	return res.json(resObj);
-};
-
 /* UPDATE */
 const updateUserProfile = async (req, res) => {
-	let id = "";
-
-	if (req.params.id && req.params.id.length > 0) {
-		id = req.params.id;
-	}
-
 	const token = req.get("Authorization");
 
 	if (!token) {
-		return res.sendStatus(401);
+		return res.status(401).json({ error: true, message: "Необходимо авторизоваться" });
 	}
 
-	const resObj = await userService.updateUserProfile(token, id, req.body);
+	const resObj = await userService.updateUserProfile(token, req.body);
 	return res.json(resObj);
 };
 
 const updateUserPassword = async (req, res) => {
-	let id = "";
-
-	if (req.params.id && req.params.id.length > 0) {
-		id = req.params.id;
-	}
-
 	const token = req.get("Authorization");
 
 	if (!token) {
-		return res.sendStatus(401);
+		return res.status(401).json({ error: true, message: "Необходимо авторизоваться" });
 	}
 
-	const resObj = await userService.updateUserPassword(token, id, req.body);
+	const resObj = await userService.updateUserPassword(token, req.body);
 	return res.json(resObj);
 };
 
 module.exports = {
 	getAllUsers,
 	getOneUser,
-	getUserProfile,
 	updateUserProfile,
 	updateUserPassword,
 };

@@ -50,214 +50,176 @@ const getOneUser = async (id) => {
 	return response;
 };
 
-const getUserProfile = async (token, id) => {
+/* UPDATE */
+const updateUserProfile = async (token, reqBody) => {
 	let response = {};
-	let decodedId;
+	let decodedTokenId = "";
 
 	jwt.verify(token, JWT_SECRET, (err, decoded) => {
+		if (err) {
+			response.error = true;
+			response.message = "Токен не действителен";
+		}
+
 		if (decoded && "id" in decoded) {
-			decodedId = decoded.id;
+			decodedTokenId = decoded.id;
 		}
 	});
 
-	if (decodedId) {
-		if (decodedId === id) {
-			const user = await UserModel.findById(decodedId)
-				.exec()
-				.then((value) => {
-					response = {
-						id: value._id,
-						username: value.username,
-						email: value.email,
-						image: value.image,
-						about: value.about,
-						refreshToken: value.refreshToken,
-						socials: value.socials,
-						notify: value.notify,
-					};
-				})
-				.catch(() => {
-					response.error = true;
-					response.message = "Пользователь с таким идентификатором не найден";
-				});
-		} else {
+	if (response.error) {
+		return response;
+	}
+
+	const user = await UserModel.findOne({ _id: decodedTokenId, refreshToken: token })
+		.exec()
+		.then((value) => {
+			if (reqBody.username && value.username !== reqBody.username) {
+				value.username = reqBody.username;
+				response.username = value.username;
+			}
+
+			if (reqBody.email && value.email !== reqBody.email) {
+				value.email = reqBody.email;
+				response.email = value.email;
+			}
+
+			if (reqBody.image && value.image !== reqBody.image) {
+				value.image = reqBody.image;
+				response.image = value.image;
+			}
+
+			if (reqBody.about && value.about !== reqBody.about) {
+				value.about = reqBody.about;
+				response.about = value.about;
+			}
+
+			if (reqBody.socials) {
+				response.socials = {};
+
+				if (reqBody.socials.vkId && value.socials.vkId !== reqBody.socials.vkId) {
+					value.socials.vkId = reqBody.socials.vkId;
+					response.socials.vkId = value.socials.vkId;
+				}
+
+				if (reqBody.socials.tgId && value.socials.tgId !== reqBody.socials.tgId) {
+					value.socials.tgId = reqBody.socials.tgId;
+					response.socials.tgId = value.socials.tgId;
+				}
+
+				if (reqBody.socials.shikiId && value.socials.shikiId !== reqBody.socials.shikiId) {
+					value.socials.shikiId = reqBody.socials.shikiId;
+					response.socials.shikiId = value.socials.shikiId;
+				}
+			}
+
+			if (reqBody.notify) {
+				response.notify = {};
+
+				if (reqBody.notify.notifyUpdate && value.notify.notifyUpdate !== reqBody.notify.notifyUpdate) {
+					value.notify.notifyUpdate = reqBody.notify.notifyUpdate;
+					response.notify.notifyUpdate = value.notify.notifyUpdate;
+				}
+
+				if (reqBody.notify.notifySubscribe && value.notify.notifySubscribe !== reqBody.notify.notifySubscribe) {
+					value.notify.notifySubscribe = reqBody.notify.notifySubscribe;
+					response.notify.notifySubscribe = value.notify.notifySubscribe;
+				}
+
+				if (reqBody.notify.notifyComment && value.notify.notifyComment !== reqBody.notify.notifyComment) {
+					value.notify.notifyComment = reqBody.notify.notifyComment;
+					response.notify.notifyComment = value.notify.notifyComment;
+				}
+			}
+
+			return value;
+		})
+		.catch((err) => {
 			response.error = true;
-			response.message = "Пользователь с таким идентификатором не найден";
-		}
-	} else {
+			response.message = "Внутренняя ошибка сервера";
+
+			if (err.message) {
+				response.message = err.message;
+			}
+		});
+
+	if (!user) {
 		response.error = true;
-		response.message = "Токен не действителен";
+		response.message = "Пользователь не авторизован";
+	}
+
+	if (!response.error) {
+		await user.save();
 	}
 
 	return response;
 };
 
-/* UPDATE */
-const updateUserProfile = async (token, id, reqBody) => {
+const updateUserPassword = async (token, reqBody) => {
 	let response = {};
-	let decodedId;
+	let updateObject = {};
+	let decodedTokenId;
 
 	jwt.verify(token, JWT_SECRET, (err, decoded) => {
+		if (err) {
+			response.error = true;
+			response.message = "Токен не действителен";
+		}
+
 		if (decoded && "id" in decoded) {
-			decodedId = decoded.id;
+			decodedTokenId = decoded.id;
 		}
 	});
 
-	if (decodedId) {
-		if (decodedId === id) {
-			let updateObject = {};
+	if (response.error) {
+		return response;
+	}
 
-			await UserModel.findById(decodedId)
-				.exec()
-				.then((value) => {
-					if (reqBody.username && value.username !== reqBody.username) {
-						updateObject.username = reqBody.username;
-					}
-
-					if (reqBody.email && value.email !== reqBody.email) {
-						updateObject.email = reqBody.email;
-					}
-
-					if (reqBody.image && value.image !== reqBody.image) {
-						updateObject.image = reqBody.image;
-					}
-
-					if (reqBody.about && value.about !== reqBody.about) {
-						updateObject.about = reqBody.about;
-					}
-
-					if (reqBody.socials) {
-						updateObject.socials = {};
-
-						if (reqBody.socials.vkId && value.socials.vkId !== reqBody.socials.vkId) {
-							updateObject.socials.vkId = reqBody.socials.vkId;
-						} else {
-							updateObject.socials.vkId = value.socials.vkId;
-						}
-
-						if (reqBody.socials.tgId && value.socials.tgId !== reqBody.socials.tgId) {
-							updateObject.socials.tgId = reqBody.socials.tgId;
-						} else {
-							updateObject.socials.tgId = value.socials.tgId;
-						}
-
-						if (reqBody.socials.shikiId && value.socials.shikiId !== reqBody.socials.shikiId) {
-							updateObject.socials.shikiId = reqBody.socials.shikiId;
-						} else {
-							updateObject.socials.shikiId = value.socials.shikiId;
-						}
-					}
-
-					if (reqBody.notify) {
-						updateObject.notify = {};
-
-						if (reqBody.notify.notifyUpdate && value.notify.notifyUpdate !== reqBody.notify.notifyUpdate) {
-							updateObject.notify.notifyUpdate = reqBody.notify.notifyUpdate;
-						} else {
-							updateObject.notify.notifyUpdate = value.notify.notifyUpdate;
-						}
-
-						if (reqBody.notify.notifySubscribe && value.notify.notifySubscribe !== reqBody.notify.notifySubscribe) {
-							updateObject.notify.notifySubscribe = reqBody.notify.notifySubscribe;
-						} else {
-							updateObject.notify.notifySubscribe = value.notify.notifySubscribe;
-						}
-
-						if (reqBody.notify.notifyComment && value.notify.notifyComment !== reqBody.notify.notifyComment) {
-							updateObject.notify.notifyComment = reqBody.notify.notifyComment;
-						} else {
-							updateObject.notify.notifyComment = value.notify.notifyComment;
-						}
-					}
-				})
-				.catch(() => {
+	const user = await UserModel.findOne({ _id: decodedTokenId, refreshToken: token })
+		.exec()
+		.then((value) => {
+			if (reqBody.oldPassword && reqBody.newPassword) {
+				if (value.checkPassword(reqBody.oldPassword)) {
+					value.setPassword(reqBody.newPassword);
+					updateObject.passwordHash = value.passwordHash;
+				} else {
 					response.error = true;
-					response.message = "Пользователь с таким идентификатором не найден";
-				});
-
-			if (Object.keys(updateObject).length > 0) {
-				await UserModel.updateOne({ _id: decodedId }, updateObject)
-					.then(() => {
-						response.error = false;
-						response.message = "Изменения сохранены";
-					})
-					.catch((err) => {
-						console.log(err.message);
-
-						response.error = true;
-						response.message = "Ошибка сохранения";
-					});
+					response.message = "Неправильный пароль";
+				}
 			} else {
 				response.error = false;
 				response.message = "Данные не изменились";
 			}
-		} else {
+
+			return value;
+		})
+		.catch((err) => {
 			response.error = true;
-			response.message = "Пользователь с таким идентификатором не найден";
-		}
-	} else {
+			response.message = "Внутренняя ошибка сервера";
+
+			if (err.message) {
+				response.message = err.message;
+			}
+		});
+
+	if (!user) {
 		response.error = true;
-		response.message = "Токен не действителен";
+		response.message = "Пользователь не авторизован";
 	}
 
-	return response;
-};
+	if (response.error) {
+		return response;
+	}
 
-const updateUserPassword = async (token, id, reqBody) => {
-	let response = {};
-	let decodedId;
-
-	jwt.verify(token, JWT_SECRET, (err, decoded) => {
-		if (decoded && "id" in decoded) {
-			decodedId = decoded.id;
-		}
-	});
-
-	if (decodedId) {
-		if (decodedId === id) {
-			let updateObject = {};
-
-			await UserModel.findById(decodedId)
-				.exec()
-				.then((value) => {
-					if (reqBody.oldPassword && reqBody.newPassword) {
-						if (value.checkPassword(reqBody.oldPassword)) {
-							value.setPassword(reqBody.newPassword);
-							updateObject.passwordHash = value.passwordHash;
-						} else {
-							response.error = true;
-							response.message = "Неправильный пароль";
-						}
-					} else {
-						response.error = false;
-						response.message = "Данные не изменились";
-					}
-				})
-				.catch(() => {
-					response.error = true;
-					response.message = "Пользователь с таким идентификатором не найден";
-				});
-
-			if (Object.keys(updateObject).length > 0) {
-				await UserModel.updateOne({ _id: decodedId }, updateObject)
-					.then(() => {
-						response.error = false;
-						response.message = "Изменения сохранены";
-					})
-					.catch((err) => {
-						console.log(err.message);
-
-						response.error = true;
-						response.message = "Ошибка сохранения";
-					});
-			}
-		} else {
-			response.error = true;
-			response.message = "Пользователь с таким идентификатором не найден";
-		}
-	} else {
-		response.error = true;
-		response.message = "Токен не действителен";
+	if (Object.keys(updateObject).length > 0) {
+		await UserModel.updateOne({ _id: decodedTokenId }, updateObject)
+			.then(() => {
+				response.error = false;
+				response.message = "Изменения сохранены";
+			})
+			.catch(() => {
+				response.error = true;
+				response.message = "Ошибка сохранения";
+			});
 	}
 
 	return response;
@@ -266,7 +228,6 @@ const updateUserPassword = async (token, id, reqBody) => {
 module.exports = {
 	getAllUsers,
 	getOneUser,
-	getUserProfile,
 	updateUserProfile,
 	updateUserPassword,
 };
