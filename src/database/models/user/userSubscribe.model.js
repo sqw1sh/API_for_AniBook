@@ -2,11 +2,11 @@ const { Schema, default: mongoose } = require("mongoose");
 
 const userSubscribeSchema = new Schema({
 	userId: {
-		type: String,
+		type: ObjectId,
 		required: true,
 	},
 	subscriberId: {
-		type: String,
+		type: ObjectId,
 		required: true,
 	},
 });

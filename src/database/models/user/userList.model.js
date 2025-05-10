@@ -2,17 +2,15 @@ const { Schema, default: mongoose } = require("mongoose");
 
 const userListSchema = new Schema({
 	userId: {
-		type: String,
+		type: ObjectId,
 		required: true,
 	},
-	storyId: {
-		type: String,
-		required: true,
-	},
-	list: {
-		type: String,
-		required: true,
-	},
+	lists: [
+		{
+			list: String,
+			stories: [ObjectId],
+		},
+	],
 });
 
 const UserListModel = mongoose.model("UserList", userListSchema);
