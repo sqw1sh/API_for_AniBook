@@ -27,6 +27,23 @@ const getOneUser = async (req, res) => {
 	return res.json(resObj);
 };
 
+const subscribe = async (req, res) => {
+	const token = req.get("Authorization");
+
+	if (!token) {
+		return res.status(401).json({ error: true, message: "Необходимо авторизоваться" });
+	}
+
+	let id = "";
+
+	if (req.params.id && req.params.id.length > 0) {
+		id = req.params.id;
+	}
+
+	const resObj = await userService.subscribe(token, id);
+	return res.json(resObj);
+};
+
 /* UPDATE */
 const updateUserProfile = async (req, res) => {
 	const token = req.get("Authorization");
@@ -53,6 +70,7 @@ const updateUserPassword = async (req, res) => {
 module.exports = {
 	getAllUsers,
 	getOneUser,
+	subscribe,
 	updateUserProfile,
 	updateUserPassword,
 };

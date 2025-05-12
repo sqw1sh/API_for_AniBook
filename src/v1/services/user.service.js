@@ -1,4 +1,5 @@
 const UserModel = require("../../database/models/user/user.model");
+const UserSubscribeModel = require("../../database/models/user/userSubscribe.model");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../../config");
 
@@ -46,6 +47,67 @@ const getOneUser = async (id) => {
 			response.error = true;
 			response.message = "Пользователь с таким идентификатором не найден";
 		});
+
+	return response;
+};
+
+const subscribe = async (token, id) => {
+	let response = {};
+	let decodedTokenId = "";
+
+	jwt.verify(token, JWT_SECRET, (err, decoded) => {
+		if (err) {
+			response.error = true;
+			response.message = "Токен не действителен";
+		}
+
+		if (decoded && "id" in decoded) {
+			decodedTokenId = decoded.id;
+		}
+	});
+
+	if (response.error) {
+		return response;
+	}
+
+	const user = await UserModel.findById(id)
+		.exec()
+		.catch((err) => {
+			response.error = true;
+			response.message = "Внутренняя ошибка сервера";
+
+			if (err.message) {
+				response.message = err.message;
+			}
+		});
+
+	if (user && !response.error) {
+		const subscribe = await UserSubscribeModel.findOne({ subscriberId: decodedTokenId, userId: user._id })
+			.exec()
+			.catch((err) => {
+				response.error = true;
+				response.message = "Внутренняя ошибка сервера";
+
+				if (err.message) {
+					response.message = err.message;
+				}
+			});
+
+		if (subscribe && !response.error) {
+			await UserSubscribeModel.deleteOne({ _id: subscribe._id });
+
+			response.error = false;
+			response.message = "Вы успешно отписались!";
+		}
+
+		if (!subscribe && !response.error) {
+			const newSubscribe = new UserSubscribeModel({ userId: user._id, subscriberId: decodedTokenId });
+			await newSubscribe.save();
+
+			response.error = false;
+			response.message = "Вы успешно подписались!";
+		}
+	}
 
 	return response;
 };
@@ -228,6 +290,7 @@ const updateUserPassword = async (token, reqBody) => {
 module.exports = {
 	getAllUsers,
 	getOneUser,
+	subscribe,
 	updateUserProfile,
 	updateUserPassword,
 };
