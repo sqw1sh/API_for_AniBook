@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
-const { JWT_SECRET } = require("../../config");
+const config = require("../../config");
 const UserModel = require("../../database/models/user/user.model");
+const UserListModel = require("../../database/models/user/userList.model");
 
 const signUp = async (reqBody) => {
 	let response = {};
@@ -38,12 +39,24 @@ const signUp = async (reqBody) => {
 						id: newUser._id,
 						email: newUser.email,
 					},
-					JWT_SECRET,
+					config.JWT_SECRET,
 					{ expiresIn: "30d" }
 				);
 
 				newUser.refreshToken = token;
 				await newUser.save();
+
+				const newUserList = new UserListModel({
+					userId: newUser._id,
+					lists: Object.values(config.userList).map((item) => {
+						return {
+							list: item,
+							stories: [],
+						};
+					}),
+				});
+
+				await newUserList.save();
 
 				response.id = newUser._id;
 				response.username = newUser.username;
@@ -53,6 +66,7 @@ const signUp = async (reqBody) => {
 				response.refreshToken = newUser.refreshToken;
 				response.socials = newUser.socials;
 				response.notify = newUser.notify;
+				response.lists = newUserList.lists;
 			} else {
 				response.error = true;
 				response.message = "Пользователь с такой почтой уже существует";
@@ -82,7 +96,7 @@ const signIn = async (reqBody) => {
 							id: value._id,
 							email: value.email,
 						},
-						JWT_SECRET,
+						config.JWT_SECRET,
 						{ expiresIn: "30d" }
 					);
 
@@ -111,14 +125,28 @@ const signIn = async (reqBody) => {
 		if (!response.error) {
 			await user.save();
 
-			response.id = user._id;
-			response.username = user.username;
-			response.email = user.email;
-			response.image = user.image;
-			response.about = user.about;
-			response.refreshToken = user.refreshToken;
-			response.socials = user.socials;
-			response.notify = user.notify;
+			const userList = await UserListModel.findOne({ userId: user._id })
+				.exec()
+				.catch((err) => {
+					response.error = true;
+					response.message = "Внутренняя ошибка сервера";
+
+					if (err.message) {
+						response.message = err.message;
+					}
+				});
+
+			if (userList && !response.error) {
+				response.id = user._id;
+				response.username = user.username;
+				response.email = user.email;
+				response.image = user.image;
+				response.about = user.about;
+				response.refreshToken = user.refreshToken;
+				response.socials = user.socials;
+				response.notify = user.notify;
+				response.userList = userList.lists;
+			}
 		}
 	} else {
 		response.error = true;
@@ -132,7 +160,7 @@ const logout = async (token) => {
 	let response = {};
 	let decodedTokenId = "";
 
-	jwt.verify(token, JWT_SECRET, (err, decoded) => {
+	jwt.verify(token, config.JWT_SECRET, (err, decoded) => {
 		if (err) {
 			response.error = true;
 			response.message = "Токен не действителен";

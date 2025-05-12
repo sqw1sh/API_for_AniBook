@@ -1,16 +1,19 @@
 const { Schema, default: mongoose } = require("mongoose");
 
+const listSchema = new Schema(
+	{
+		list: String,
+		stories: [{ story: mongoose.ObjectId }],
+	},
+	{ _id: false }
+);
+
 const userListSchema = new Schema({
 	userId: {
-		type: ObjectId,
+		type: mongoose.ObjectId,
 		required: true,
 	},
-	lists: [
-		{
-			list: String,
-			stories: [ObjectId],
-		},
-	],
+	lists: [listSchema],
 });
 
 const UserListModel = mongoose.model("UserList", userListSchema);
