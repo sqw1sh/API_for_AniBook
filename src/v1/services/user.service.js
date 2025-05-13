@@ -34,19 +34,27 @@ const getOneUser = async (id) => {
 
 	const user = await UserModel.findById(id)
 		.exec()
-		.then((value) => {
-			response = {
-				id: value._id,
-				username: value.username,
-				image: value.image,
-				createdAt: value.createdAt,
-				updatedAt: value.updatedAt,
-			};
-		})
-		.catch(() => {
+		.catch((err) => {
 			response.error = true;
-			response.message = "Пользователь с таким идентификатором не найден";
+			response.message = "Внутренняя ошибка сервера";
+
+			if (err.message) {
+				response.message = err.message;
+			}
 		});
+
+	if (!user) {
+		response.error = true;
+		response.message = "Пользователь не найден";
+	} else {
+		response = {
+			id: user._id,
+			username: user.username,
+			image: user.image,
+			createdAt: user.createdAt,
+			updatedAt: user.updatedAt,
+		};
+	}
 
 	return response;
 };

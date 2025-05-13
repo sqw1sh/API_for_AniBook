@@ -3,7 +3,7 @@ const { Schema, default: mongoose } = require("mongoose");
 const listSchema = new Schema(
 	{
 		list: String,
-		stories: [{ story: mongoose.ObjectId }],
+		stories: [mongoose.ObjectId],
 	},
 	{ _id: false }
 );
