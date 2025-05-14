@@ -27,7 +27,57 @@ const getOneStory = async (req, res) => {
 	return res.json(resObj);
 };
 
+/* POST */
+const createStory = async (req, res) => {
+	const token = req.get("Authorization");
+
+	if (!token) {
+		return res.status(401).json({ error: true, message: "Необходимо авторизоваться" });
+	}
+
+	const resObj = await storyService.createStory(token, req.body);
+	return res.json(resObj);
+};
+
+const addChapter = async (req, res) => {
+	const token = req.get("Authorization");
+
+	if (!token) {
+		return res.status(401).json({ error: true, message: "Необходимо авторизоваться" });
+	}
+
+	let id = "";
+
+	if (req.params.id && req.params.id.length > 0) {
+		id = req.params.id;
+	}
+
+	const resObj = await storyService.addChapter(token, id, req.body);
+	return res.json(resObj);
+};
+
+/* UPDATE */
+const updateStory = async (req, res) => {
+	const token = req.get("Authorization");
+
+	if (!token) {
+		return res.status(401).json({ error: true, message: "Необходимо авторизоваться" });
+	}
+
+	let id = "";
+
+	if (req.params.id && req.params.id.length > 0) {
+		id = req.params.id;
+	}
+
+	const resObj = await storyService.updateStory(token, id, req.body);
+	return res.json(resObj);
+};
+
 module.exports = {
 	getAllStories,
 	getOneStory,
+	createStory,
+	addChapter,
+	updateStory,
 };

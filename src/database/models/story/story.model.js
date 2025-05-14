@@ -6,6 +6,10 @@ const chapterSchema = new Schema(
 			type: Number,
 			required: true,
 		},
+		title: {
+			type: String,
+			required: true,
+		},
 		text: {
 			type: String,
 			required: true,
@@ -40,9 +44,18 @@ const storySchema = new Schema(
 			type: String,
 			required: true,
 		},
-		chapters: [chapterSchema],
-		genres: [mongoose.ObjectId],
-		tags: [mongoose.ObjectId],
+		chapters: {
+			type: [chapterSchema],
+			default: [],
+		},
+		genres: {
+			type: [mongoose.ObjectId],
+			default: [],
+		},
+		tags: {
+			type: [mongoose.ObjectId],
+			default: [],
+		},
 	},
 	{
 		timestamps: true,
