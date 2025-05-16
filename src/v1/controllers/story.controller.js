@@ -56,6 +56,23 @@ const addChapter = async (req, res) => {
 	return res.json(resObj);
 };
 
+const changeRating = async (req, res) => {
+	const token = req.get("Authorization");
+
+	if (!token) {
+		return res.status(401).json({ error: true, message: "Необходимо авторизоваться" });
+	}
+
+	let id = "";
+
+	if (req.params.id && req.params.id.length > 0) {
+		id = req.params.id;
+	}
+
+	const resObj = await storyService.changeRating(token, id, req.body);
+	return res.json(resObj);
+};
+
 /* UPDATE */
 const updateStory = async (req, res) => {
 	const token = req.get("Authorization");
@@ -74,10 +91,39 @@ const updateStory = async (req, res) => {
 	return res.json(resObj);
 };
 
+const updateChapter = async (req, res) => {
+	const token = req.get("Authorization");
+
+	if (!token) {
+		return res.status(401).json({ error: true, message: "Необходимо авторизоваться" });
+	}
+
+	let id = "";
+
+	if (req.params.id && req.params.id.length > 0) {
+		id = req.params.id;
+	}
+
+	let number = 0;
+
+	if (req.params.number && !isNaN(parseInt(req.params.number))) {
+		number = parseInt(req.params.number);
+	}
+
+	if (number <= 0) {
+		return res.status(400).json({ error: true, message: "Укажите номер главы" });
+	}
+
+	const resObj = await storyService.updateChapter(token, id, number, req.body);
+	return res.json(resObj);
+};
+
 module.exports = {
 	getAllStories,
 	getOneStory,
 	createStory,
 	addChapter,
+	changeRating,
 	updateStory,
+	updateChapter,
 };

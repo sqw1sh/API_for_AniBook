@@ -9,9 +9,10 @@ router.get("/:id", storyController.getOneStory);
 /* POST */
 router.post("/", storyController.createStory);
 router.post("/:id/chapter", storyController.addChapter);
+router.post("/:id/rating", storyController.changeRating);
 
 /* UPDATE */
 router.patch("/:id", storyController.updateStory);
-// router.patch("/:id/chapter/:number", storyController.addChapter);
+router.patch("/:id/chapter/:number", storyController.updateChapter);
 
 module.exports = router;

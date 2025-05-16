@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../../config");
 const StoryModel = require("../../database/models/story/story.model");
+const StoryRatingModel = require("../../database/models/story/storyRating.model");
 
 /* GET */
 const getAllStories = async (page = 1, max = 10) => {
@@ -185,6 +186,69 @@ const addChapter = async (token, id, reqBody) => {
 	return response;
 };
 
+const changeRating = async (token, id, reqBody) => {
+	let response = {};
+	let decodedTokenId = "";
+
+	jwt.verify(token, JWT_SECRET, (err, decoded) => {
+		if (err) {
+			response.error = true;
+			response.message = "Токен не действителен";
+		}
+
+		if (decoded && "id" in decoded) {
+			decodedTokenId = decoded.id;
+		}
+	});
+
+	if (response.error) {
+		return response;
+	}
+
+	const storyRating = await StoryRatingModel.findOne({ storyId: id, userId: decodedTokenId })
+		.exec()
+		.catch((err) => {
+			response.error = true;
+			response.message = "Внутренняя ошибка сервера";
+
+			if (err.message) {
+				response.message = err.message;
+			}
+		});
+
+	if (storyRating && !response.error) {
+		if (reqBody.score && storyRating.score !== reqBody.score) {
+			storyRating.score = reqBody.score;
+
+			await storyRating.save();
+
+			response.error = false;
+			response.message = "Рейтинг успешно обновлен";
+		}
+
+		if (!reqBody.score) {
+			await StoryRatingModel.deleteOne({ _id: storyRating._id });
+
+			response.error = false;
+			response.message = "Рейтинг успешно удален";
+		}
+	} else {
+		if (reqBody.score) {
+			const newStoryRating = new StoryRatingModel({ storyId: id, userId: decodedTokenId, score: reqBody.score });
+
+			await newStoryRating.save();
+
+			response.error = false;
+			response.message = "Рейтинг успешно добавлен";
+		} else {
+			response.error = true;
+			response.message = "Необходимо указать оценку";
+		}
+	}
+
+	return response;
+};
+
 /* UPDATE */
 const updateStory = async (token, id, reqBody) => {
 	let response = {};
@@ -265,10 +329,77 @@ const updateStory = async (token, id, reqBody) => {
 	return response;
 };
 
+const updateChapter = async (token, id, number, reqBody) => {
+	let response = {};
+	let decodedTokenId = "";
+
+	jwt.verify(token, JWT_SECRET, (err, decoded) => {
+		if (err) {
+			response.error = true;
+			response.message = "Токен не действителен";
+		}
+
+		if (decoded && "id" in decoded) {
+			decodedTokenId = decoded.id;
+		}
+	});
+
+	if (response.error) {
+		return response;
+	}
+
+	const story = await StoryModel.findById(id)
+		.exec()
+		.then((value) => {
+			if (value.userId.toString() === decodedTokenId) {
+				value.chapters = value.chapters.map((item) => {
+					if (item.number === number) {
+						if (reqBody.title && item.title !== reqBody.title) {
+							item.title = reqBody.title;
+						}
+
+						if (reqBody.text && item.text !== reqBody.text) {
+							item.text = reqBody.text;
+						}
+					}
+
+					return item;
+				});
+
+				response.error = false;
+				response.message = "Глава успешно обновлена";
+			} else {
+				response.error = true;
+				response.message = "Вы не являетесь автором истории";
+			}
+
+			return value;
+		})
+		.catch((err) => {
+			response.error = true;
+			response.message = "Внутренняя ошибка сервера";
+
+			if (err.message) {
+				response.message = err.message;
+			}
+		});
+
+	if (!story) {
+		response.error = true;
+		response.message = "История не найдена";
+	} else {
+		await story.save();
+	}
+
+	return response;
+};
+
 module.exports = {
 	getAllStories,
 	getOneStory,
 	createStory,
 	addChapter,
+	changeRating,
 	updateStory,
+	updateChapter,
 };
