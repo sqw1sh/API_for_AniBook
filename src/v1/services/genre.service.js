@@ -1,4 +1,4 @@
-const GenreModel = require("../../database/models/story/genre.model");
+const GenreModel = require("../../database/models/genre/genre.model");
 
 const getAllGenres = async () => {
 	let response = {};

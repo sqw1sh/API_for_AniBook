@@ -1,4 +1,4 @@
-const TagModel = require("../../database/models/story/tag.model");
+const TagModel = require("../../database/models/tag/tag.model");
 
 const getAllTags = async () => {
 	let response = {};
