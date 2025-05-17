@@ -15,4 +15,8 @@ router.post("/:id/rating", storyController.changeRating);
 router.patch("/:id", storyController.updateStory);
 router.patch("/:id/chapter/:number", storyController.updateChapter);
 
+/* DELETE */
+router.delete("/:id", storyController.removeStory);
+router.delete("/:id/chapter/:number", storyController.removeChapter);
+
 module.exports = router;

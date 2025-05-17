@@ -394,6 +394,108 @@ const updateChapter = async (token, id, number, reqBody) => {
 	return response;
 };
 
+/* DELETE */
+const removeStory = async (token, id) => {
+	let response = {};
+	let decodedTokenId = "";
+
+	jwt.verify(token, JWT_SECRET, (err, decoded) => {
+		if (err) {
+			response.error = true;
+			response.message = "Токен не действителен";
+		}
+
+		if (decoded && "id" in decoded) {
+			decodedTokenId = decoded.id;
+		}
+	});
+
+	if (response.error) {
+		return response;
+	}
+
+	const story = await StoryModel.findById(id)
+		.exec()
+		.catch((err) => {
+			response.error = true;
+			response.message = "Внутренняя ошибка сервера";
+
+			if (err.message) {
+				response.message = err.message;
+			}
+		});
+
+	if (!story) {
+		response.error = true;
+		response.message = "История не найдена";
+	} else {
+		if (story.userId.toString() === decodedTokenId) {
+			await StoryModel.deleteOne({ _id: story._id });
+
+			response.error = false;
+			response.message = "История успешно удалена";
+		} else {
+			response.error = true;
+			response.message = "Вы не являетесь автором истории";
+		}
+	}
+
+	return response;
+};
+
+const removeChapter = async (token, id, number) => {
+	let response = {};
+	let decodedTokenId = "";
+
+	jwt.verify(token, JWT_SECRET, (err, decoded) => {
+		if (err) {
+			response.error = true;
+			response.message = "Токен не действителен";
+		}
+
+		if (decoded && "id" in decoded) {
+			decodedTokenId = decoded.id;
+		}
+	});
+
+	if (response.error) {
+		return response;
+	}
+
+	const story = await StoryModel.findById(id)
+		.exec()
+		.then((value) => {
+			if (value.userId.toString() === decodedTokenId) {
+				value.chapters = value.chapters.filter((item) => item.number !== number);
+
+				response.error = false;
+				response.message = "Глава успешно удалена";
+			} else {
+				response.error = true;
+				response.message = "Вы не являетесь автором истории";
+			}
+
+			return value;
+		})
+		.catch((err) => {
+			response.error = true;
+			response.message = "Внутренняя ошибка сервера";
+
+			if (err.message) {
+				response.message = err.message;
+			}
+		});
+
+	if (!story) {
+		response.error = true;
+		response.message = "История не найдена";
+	} else {
+		await story.save();
+	}
+
+	return response;
+};
+
 module.exports = {
 	getAllStories,
 	getOneStory,
@@ -402,4 +504,6 @@ module.exports = {
 	changeRating,
 	updateStory,
 	updateChapter,
+	removeStory,
+	removeChapter,
 };
