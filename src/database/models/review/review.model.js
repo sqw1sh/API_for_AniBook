@@ -10,10 +10,6 @@ const reviewSchema = new Schema(
 			type: mongoose.ObjectId,
 			required: true,
 		},
-		storyRatingId: {
-			type: mongoose.ObjectId,
-			required: true,
-		},
 		title: {
 			type: String,
 			required: true,
