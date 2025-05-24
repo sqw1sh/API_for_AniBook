@@ -1,7 +1,7 @@
 const { Schema, default: mongoose } = require("mongoose");
 
 const commentCollectionSchema = new Schema({
-	storyId: {
+	collectionId: {
 		type: mongoose.ObjectId,
 		required: true,
 	},
